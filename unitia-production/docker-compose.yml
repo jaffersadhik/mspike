@@ -1,0 +1,246 @@
+version: '3'
+services:
+  http1:
+    image: "winnovature/unitia:production" 
+    ports:
+      - "8001:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "router1"
+      - "router2"
+    environment:
+      - module=http
+      - TZ=Asia/Kolkata  
+  http2:
+    image: "winnovature/unitia:production"
+    ports:
+      - "8002:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "router1"
+      - "router2"
+    environment:
+      - module=http
+      - TZ=Asia/Kolkata
+  smpp:
+    image: "winnovature/unitia:production"
+    ports:
+      - "2775:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "router1"
+      - "router2"
+    environment:
+      - module=smpp
+      - TZ=Asia/Kolkata
+  dnreceiver1:
+    image: "winnovature/unitia:production"
+    ports:
+      - "6001:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "submission"
+    environment:
+      - module=dnreceiver
+      - TZ=Asia/Kolkata
+  dnreceiver2:
+    image: "winnovature/unitia:production"
+    ports:
+      - "6002:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "submission"
+    environment:
+      - module=dnreceiver
+      - TZ=Asia/Kolkata
+  dngen1:
+    image: "winnovature/unitia:production"
+    ports:
+      - "7001:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dngencore"
+    environment:
+      - module=dngen
+      - TZ=Asia/Kolkata
+  dngencore:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dn"
+    environment:
+      - module=dngencore
+      - TZ=Asia/Kolkata
+  submission:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "delivery"
+    environment:
+      - module=submission
+      - TZ=Asia/Kolkata
+  delivery:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "scheduledb"
+    environment:
+      - module=delivery
+      - TZ=Asia/Kolkata
+  scheduledb:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dnpostdb" 
+    environment:
+      - module=scheduledb
+      - TZ=Asia/Kolkata
+  dnpostdb:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dbtoredis"
+    environment:
+      - module=dnpostdb
+      - TZ=Asia/Kolkata
+  dbtoredis:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "tablereader"
+    environment:
+      - module=dbtoredis
+      - TZ=Asia/Kolkata
+  tablereader:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dnhttppost"
+    environment:
+      - module=tablereader
+      - TZ=Asia/Kolkata
+  dnhttppost:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "redisqueue1"
+    environment:
+      - module=dnhttppost
+      - TZ=Asia/Kolkata
+  router1:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dngen1"
+      - "redisqueue1"
+      - "kannel1"
+    environment:
+      - module=router
+      - redis=redisqueue1 
+      - TZ=Asia/Kolkata
+  router2:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dngen1"
+      - "redisqueue2"
+      - "kannel1"
+    environment:
+      - module=router
+      - redis=redisqueue2
+      - TZ=Asia/Kolkata
+  redisqueue1:
+    image: "redis:6.0-alpine3.12"
+    ports:
+      - "2001:6379" 
+    volumes:
+      - /home/unitia/production/redisqueue1/data/:/data
+  redisqueue2:
+    image: "redis:6.0-alpine3.12"
+    ports:
+      - "2002:6379"
+    volumes:
+      - /home/unitia/production/redisqueue2/data/:/data
+  kannel1:
+    image: kannel:latest
+    ports:
+      - "13013:13013" # smsbox
+      - "13000:13000" # kannel admin
+    depends_on:
+      - kannelconfig
+      - dn 
+    volumes:
+      - "/home/unitia/production/spool/kannel1:/var/spool/kannel"
+      - "/logs/kannel1:/var/log/kannel"
+      - "/etc/hosts:/etc/hosts"
+      - "/home/unitia/production/kannel1:/etc/kannel"
+      - "./opensmppbox.conf:/etc/kannel/opensmppbox.conf"
+    environment:
+      - "LANG=en_US.UTF-8"
+      - "LC_ALL=en_US.UTF-8"
+  unitiadb:
+    image: "mariadb"
+    ports:
+      -  "7005:3306"
+    volumes:
+      - "/home/unitia/production/mysql:/var/lib/mysql"
+    environment:
+      - MYSQL_ROOT_PASSWORD=kannel 
+      - TZ=Asia/Kolkata
+  kannelconfig:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    depends_on:
+      - "unitiadb"
+    environment:
+      - module=kannelconfig
+      - TZ=Asia/Kolkata
+  dn:
+    image: "dn-haproxy:latest"
+    ports:
+      - "8777:8080"
+    depends_on:
+      - "dnreceiver1"
+      - "dnreceiver2"
+  http:
+    image: "http-haproxy:latest"
+    ports:
+      - "9090:8080"
+    depends_on:
+      - "http1"
+      - "http2"

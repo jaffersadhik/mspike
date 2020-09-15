@@ -1,0 +1,272 @@
+version: '3'
+services:
+  http1:
+    image: "winnovature/unitia:lion" 
+    ports:
+      - "8011:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "router1"
+      - "router2"
+    environment:
+      - module=http
+      - TZ=Asia/Kolkata  
+      - mode=staging
+  http2:
+    image: "winnovature/unitia:lion"
+    ports:
+      - "8012:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "router1"
+      - "router2"
+    environment:
+      - module=http
+      - TZ=Asia/Kolkata
+      - mode=staging
+  smpp:
+    image: "winnovature/unitia:lion"
+    ports:
+      - "3775:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "router1"
+      - "router2"
+    environment:
+      - module=smpp
+      - TZ=Asia/Kolkata
+      - mode=staging
+  dnreceiver1:
+    image: "winnovature/unitia:lion"
+    ports:
+      - "6011:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "submission"
+    environment:
+      - module=dnreceiver
+      - TZ=Asia/Kolkata
+      - mode=staging
+  dnreceiver2:
+    image: "winnovature/unitia:lion"
+    ports:
+      - "6012:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "submission"
+    environment:
+      - module=dnreceiver
+      - TZ=Asia/Kolkata
+      - mode=staging
+  dngen1:
+    image: "winnovature/unitia:lion"
+    ports:
+      - "7011:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dngencore"
+    environment:
+      - module=dngen
+      - TZ=Asia/Kolkata
+      - mode=staging
+  dngen2:
+    image: "winnovature/unitia:lion"
+    ports:
+      - "7012:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dngencore"
+    environment:
+      - module=dngen
+      - TZ=Asia/Kolkata
+      - mode=staging
+  dngencore:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dnreceiver1"
+    environment:
+      - module=dngencore
+      - TZ=Asia/Kolkata
+      - mode=staging
+  submission:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "delivery"
+    environment:
+      - module=submission
+      - TZ=Asia/Kolkata
+      - mode=staging
+  delivery:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "scheduledb"
+    environment:
+      - module=delivery
+      - TZ=Asia/Kolkata
+      - mode=staging
+  scheduledb:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dnpostdb" 
+    environment:
+      - module=scheduledb
+      - TZ=Asia/Kolkata
+      - mode=staging
+  dnpostdb:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dbtoredis"
+    environment:
+      - module=dnpostdb
+      - TZ=Asia/Kolkata
+      - mode=staging
+  dbtoredis:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "tablereader"
+    environment:
+      - module=dbtoredis
+      - TZ=Asia/Kolkata
+      - mode=staging
+  tablereader:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dnhttppost"
+    environment:
+      - module=tablereader
+      - TZ=Asia/Kolkata
+      - mode=staging
+  dnhttppost:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "redisqueue1"
+    environment:
+      - module=dnhttppost
+      - TZ=Asia/Kolkata
+      - mode=staging
+  router1:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dngen1"
+      - "redisqueue1"
+      - "kannel1"
+      - "kannel2"
+    environment:
+      - module=router
+      - redis=redisqueue1 
+      - TZ=Asia/Kolkata
+      - mode=staging
+  router2:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "dngen1"
+      - "redisqueue2"
+      - "kannel1"
+      - "kannel2" 
+    environment:
+      - module=router
+      - redis=redisqueue2
+      - TZ=Asia/Kolkata
+      - mode=staging
+  redisqueue1:
+    image: "redis:6.0-alpine3.12"
+    ports:
+      - "2011:6379" 
+    volumes:
+      - /home/unitia/staging/redisqueue1/data/:/data
+  redisqueue2:
+    image: "redis:6.0-alpine3.12"
+    ports:
+      - "2012:6379"
+    volumes:
+      - /home/unitia/staging/redisqueue2/data/:/data
+  kannel1:
+    image: bulktrade/kannel:r5159
+    ports:
+      - "13113:13013" # smsbox
+      - "13100:13000" # kannel admin
+    depends_on:
+      - kannelconfig
+    volumes:
+      - "/home/unitia/staging/spool/kannel1:/var/spool/kannel"
+      - "/home/unitia/staging/logs/kannel:/var/log/kannel"
+      - "/etc/hosts:/etc/hosts"
+      - "/home/unitia/staging/kannel:/etc/kannel"
+      - "./opensmppbox.conf:/etc/kannel/opensmppbox.conf"
+  kannel2:
+    image: bulktrade/kannel:r5159
+    ports:
+      - "13123:13013" # smsbox
+      - "13120:13000" # kannel admin
+    depends_on:
+      - kannelconfig
+    volumes:
+      - "/home/unitia/staging/spool/kannel2:/var/spool/kannel"
+      - "/home/unitia/staging/logs/kannel:/var/log/kannel"
+      - "/etc/hosts:/etc/hosts"
+      - "/home/unitia/staging/kannel:/etc/kannel"
+      - "./opensmppbox.conf:/etc/kannel/opensmppbox.conf"
+  unitiadb:
+    image: "mariadb"
+    ports:
+      -  "7015:3306"
+    volumes:
+      - "/home/unitia/staging/mysql:/var/lib/mysql"
+    environment:
+      - MYSQL_ROOT_PASSWORD=kannel 
+      - TZ=Asia/Kolkata
+  kannelconfig:
+    image: "winnovature/unitia:lion"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "unitiadb"
+    environment:
+      - module=kannelconfig
+      - TZ=Asia/Kolkata
+      - mode=staging
