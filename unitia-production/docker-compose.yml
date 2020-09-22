@@ -9,7 +9,6 @@ services:
       - /home/unitia/:/unitia
     depends_on:
       - "router1"
-      - "router2"
     environment:
       - module=http
       - TZ=Asia/Kolkata  
@@ -22,7 +21,6 @@ services:
       - /home/unitia/:/unitia
     depends_on:
       - "router1"
-      - "router2"
     environment:
       - module=http
       - TZ=Asia/Kolkata
@@ -35,7 +33,6 @@ services:
       - /home/unitia/:/unitia
     depends_on:
       - "router1"
-      - "router2"
     environment:
       - module=smpp
       - TZ=Asia/Kolkata
@@ -152,6 +149,7 @@ services:
       - /home/unitia/:/unitia
     depends_on:
       - "redisqueue1"
+      - "unitiadb"
     environment:
       - module=dnhttppost
       - TZ=Asia/Kolkata
@@ -168,33 +166,14 @@ services:
       - module=router
       - redis=redisqueue1 
       - TZ=Asia/Kolkata
-  router2:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-    depends_on:
-      - "dngen1"
-      - "redisqueue2"
-      - "kannel1"
-    environment:
-      - module=router
-      - redis=redisqueue2
-      - TZ=Asia/Kolkata
   redisqueue1:
-    image: "redis:6.0-alpine3.12"
+    image: "winnovature/redis:production"
     ports:
       - "2001:6379" 
     volumes:
       - /home/unitia/production/redisqueue1/data/:/data
-  redisqueue2:
-    image: "redis:6.0-alpine3.12"
-    ports:
-      - "2002:6379"
-    volumes:
-      - /home/unitia/production/redisqueue2/data/:/data
   kannel1:
-    image: kannel:latest
+    image: "winnovature/kannel:production"
     ports:
       - "13013:13013" # smsbox
       - "13000:13000" # kannel admin
@@ -211,14 +190,19 @@ services:
       - "LANG=en_US.UTF-8"
       - "LC_ALL=en_US.UTF-8"
   unitiadb:
-    image: "mariadb"
+    image: "winnovature/mariadb:production"
     ports:
-      -  "7005:3306"
+      -  "3306:3306"
     volumes:
       - "/home/unitia/production/mysql:/var/lib/mysql"
+      - "/home/unitia/production/mysql/my.cnf:/etc/mysql/my.cnf"
     environment:
       - MYSQL_ROOT_PASSWORD=kannel 
       - TZ=Asia/Kolkata
+    networks:
+      default:
+        aliases:
+          - "unitia.mysql.ip" 
   kannelconfig:
     image: "winnovature/unitia:production"
     volumes:
@@ -231,14 +215,14 @@ services:
       - module=kannelconfig
       - TZ=Asia/Kolkata
   dn:
-    image: "dn-haproxy:latest"
+    image: "winnovature/dn-haproxy:production"
     ports:
       - "8777:8080"
     depends_on:
       - "dnreceiver1"
       - "dnreceiver2"
   http:
-    image: "http-haproxy:latest"
+    image: "winnovature/http-haproxy:production"
     ports:
       - "9090:8080"
     depends_on:
