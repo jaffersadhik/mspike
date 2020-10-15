@@ -18,14 +18,13 @@ RUN apt-get update && apt-get install -y \
     && tar xzf gateway-1.5.0.tar.gz \
     && cd gateway-1.5.0 
 
-COPY smscconn.c gateway-1.5.0/gw/.
+
 COPY dlr_mysql.c gateway-1.5.0/gw/.
 COPY dlr.c gateway-1.5.0/gw/.
 COPY dlr.h gateway-1.5.0/gw/.
 COPY dlr_p.h gateway-1.5.0/gw/.
 COPY smsc_smpp.c gateway-1.5.0/gw/smsc/.
 
-RUN rm -rf gateway-1.5.0/gw/smsc/smsc_soap.c
 RUN rm -rf gateway-1.5.0/gw/smsc/smsc_at.c
 RUN rm -rf gateway-1.5.0/gw/smsc/smsc_cgw.c
 RUN rm -rf gateway-1.5.0/gw/smsc/smsc_cimd2.c

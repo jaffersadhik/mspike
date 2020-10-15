@@ -16,25 +16,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     && wget --no-check-certificate https://kannel.org/download/1.5.0/gateway-1.5.0.tar.gz \
     && tar xzf gateway-1.5.0.tar.gz \
-    && cd gateway-1.5.0 
-
-COPY smscconn.c gateway-1.5.0/gw/.
-COPY dlr_mysql.c gateway-1.5.0/gw/.
-COPY dlr.c gateway-1.5.0/gw/.
-COPY dlr.h gateway-1.5.0/gw/.
-COPY dlr_p.h gateway-1.5.0/gw/.
-COPY smsc_smpp.c gateway-1.5.0/gw/smsc/.
-
-RUN rm -rf gateway-1.5.0/gw/smsc/smsc_soap.c
-RUN rm -rf gateway-1.5.0/gw/smsc/smsc_at.c
-RUN rm -rf gateway-1.5.0/gw/smsc/smsc_cgw.c
-RUN rm -rf gateway-1.5.0/gw/smsc/smsc_cimd2.c
-RUN rm -rf gateway-1.5.0/gw/smsc/smsc_emi.c
-RUN rm -rf gateway-1.5.0/gw/smsc/smsc_fake.c
-RUN rm -rf gateway-1.5.0/gw/smsc/smsc_http.c
-RUN rm -rf gateway-1.5.0/gw/smsc/smsc_oisd.c
-RUN apt-get update && \
-    cd gateway-1.5.0 \
+    && cd gateway-1.5.0 \
     && ./configure --with-mysql  --prefix=/usr --sysconfdir=/etc/kannel \
     && touch .depend \
     && make \

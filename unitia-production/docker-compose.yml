@@ -176,7 +176,7 @@ services:
     volumes:
       - /home/unitia/production/redisqueue1/data/:/data
   kannel1:
-    image: "winnovature/kannel:production"
+    image: "kannel"
     ports:
       - "13013:13013" # smsbox
       - "13000:13000" # kannel admin
