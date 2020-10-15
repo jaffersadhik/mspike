@@ -122,14 +122,6 @@ struct dlr_storage {
      */
     struct dlr_entry* (*dlr_get) (const Octstr *smsc, const Octstr *ts, const Octstr *dst);
     /*
-     * Remove matching dlr entry from storage
-     */
-    void (*dlr_remove) (const Octstr *smsc, const Octstr *ts, const Octstr *dst);
-    /*
-     * Update dlr entry status field if any.
-     */
-    void (*dlr_update) (const Octstr *smsc, const Octstr *ts, const Octstr *dst, int status);
-    /*
      * Return count dlr entries in storage.
      */
     long (*dlr_messages) (void);

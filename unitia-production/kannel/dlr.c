@@ -250,16 +250,6 @@ void dlr_init(Cfg* cfg)
     /* call the sub-init routine */
     if (octstr_compare(dlr_type, octstr_imm("mysql")) == 0) {
         handles = dlr_init_mysql(cfg);
-    } else if (octstr_compare(dlr_type, octstr_imm("sdb")) == 0) {
-        handles = dlr_init_sdb(cfg);
-    } else if (octstr_compare(dlr_type, octstr_imm("oracle")) == 0) {
-        handles = dlr_init_oracle(cfg);
-    } else if (octstr_compare(dlr_type, octstr_imm("internal")) == 0) {
-        handles = dlr_init_mem(cfg);
-    } else if (octstr_compare(dlr_type, octstr_imm("pgsql")) == 0) {
-        handles = dlr_init_pgsql(cfg);
-    } else if (octstr_compare(dlr_type, octstr_imm("mssql")) == 0) {
-        handles = dlr_init_mssql(cfg);
     }
 
     /*
@@ -271,7 +261,7 @@ void dlr_init(Cfg* cfg)
     }
 
     /* check needed function pointers */
-    if (handles->dlr_add == NULL || handles->dlr_get == NULL || handles->dlr_remove == NULL)
+    if (handles->dlr_add == NULL || handles->dlr_get == NULL )
         panic(0, "DLR: storage type '%s' don't implement needed functions", octstr_get_cstr(dlr_type));
 
     /* get info from storage */
@@ -465,16 +455,7 @@ Msg *dlr_find(const Octstr *smsc, const Octstr *ts, const Octstr *dst, int typ, 
     if ((typ & DLR_BUFFERED) && ((dlr->mask & DLR_SUCCESS) || (dlr->mask & DLR_FAIL))) {
         debug("dlr.dlr", 0, "DLR[%s]: DLR not destroyed, still waiting for other delivery report", dlr_type());
         /* update dlr entry status if function defined */
-        if (handles != NULL && handles->dlr_update != NULL){
-            handles->dlr_update(smsc, ts, dst_min, typ);
-        }
     } else {
-        if (handles != NULL && handles->dlr_remove != NULL){
-            /* it's not good for internal storage, but better for all others */
-            handles->dlr_remove(smsc, ts, dst_min);
-        } else {
-            warning(0, "DLR[%s]: Storage don't have remove operation defined", dlr_type());
-        }
     }
 
     

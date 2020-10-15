@@ -25,6 +25,9 @@ COPY dlr.h gateway-1.5.0/gw/.
 COPY dlr_p.h gateway-1.5.0/gw/.
 COPY smsc_smpp.c gateway-1.5.0/gw/smsc/.
 
+RUN rm -rf gateway-1.5.0/gw/dlr_mssql.c
+RUN rm -rf gateway-1.5.0/gw/dlr_pgsql.c
+RUN rm -rf gateway-1.5.0/gw/dlr_mem.c
 RUN rm -rf gateway-1.5.0/gw/smsc/smsc_soap.c
 RUN rm -rf gateway-1.5.0/gw/smsc/smsc_at.c
 RUN rm -rf gateway-1.5.0/gw/smsc/smsc_cgw.c
