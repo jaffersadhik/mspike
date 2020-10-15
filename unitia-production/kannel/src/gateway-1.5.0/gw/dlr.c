@@ -366,70 +366,17 @@ void dlr_add(const Octstr *smsc, const Octstr *ts, Msg *msg)
     handles->dlr_add(dlr);
 }
 
-
-
-void dlr_addresponse(const Octstr *smsc, const Octstr *ts, Msg *msg,const Octstr *respstr)
-{
-    struct dlr_entry *dlr = NULL;
-
-
-    /* Add the foreign_id so all SMSC modules can use it.
-     * Obey also the original message in the split_parts list. */
-    if (msg->sms.foreign_id != NULL)
-        octstr_destroy(msg->sms.foreign_id);
-    msg->sms.foreign_id = octstr_duplicate(ts);
-    if (msg->sms.split_parts != NULL) {
-        struct split_parts *split = msg->sms.split_parts;
-        if (split->orig->sms.foreign_id != NULL)
-            octstr_destroy(split->orig->sms.foreign_id);
-        split->orig->sms.foreign_id = octstr_duplicate(ts);
-    }
-
-
- 
-
-
-    if(octstr_len(smsc) == 0) {
-        warning(0, "DLR[%s]: Can't add a dlr without smsc-id", dlr_type());
-        return;
-    }
-
-    /* sanity check */
-    if (handles == NULL || handles->dlr_add == NULL || msg == NULL)
-        return;
-
-    /* check if delivery receipt requested */
-    if (!DLR_IS_ENABLED(msg->sms.dlr_mask))
-        return;
-
-     /* allocate new struct dlr_entry struct */
-    dlr = dlr_entry_create();
-    gw_assert(dlr != NULL);
-
-    /* now copy all values, we are interested in */
-    dlr->smsc = (smsc ? octstr_duplicate(smsc) : octstr_create(""));
-    dlr->timestamp = (ts ? octstr_duplicate(ts) : octstr_create(""));
-    dlr->url = (respstr ? octstr_duplicate(respstr) :  octstr_create(""));
-
-    debug("dlr.dlr", 0, "DLR[%s]: Adding DLR RESP smsc=%s, ts=%s",octstr_get_cstr(dlr->url), octstr_get_cstr(dlr->smsc), octstr_get_cstr(dlr->timestamp));
-
-    /* call registered function */
-    handles->dlr_addresponse(dlr,respstr);
-}
-
-
-
 /*
  * Return Msg* if dlr entry found in DB, otherwise NULL.
  * NOTE: If typ is end status (e.g. DELIVERED) then dlr entry
  *       will be removed from DB.
  */
-Msg *dlr_find(const Octstr *smsc, const Octstr *ts, const Octstr *dst, int typ, int use_dst,const Octstr *respstr)
+Msg *dlr_find(const Octstr *smsc, const Octstr *ts, const Octstr *dst, int typ, int use_dst)
 {
     Msg	*msg = NULL;
     struct dlr_entry *dlr = NULL;
     Octstr *dst_min = NULL;
-   
+    
     if(octstr_len(smsc) == 0) {
 	warning(0, "DLR[%s]: Can't find a dlr without smsc-id", dlr_type());
         return NULL;
@@ -446,18 +393,50 @@ Msg *dlr_find(const Octstr *smsc, const Octstr *ts, const Octstr *dst, int typ, 
         if (len > MIN_DST_LEN)
             octstr_delete(dst_min, 0, len - MIN_DST_LEN);
     }
+    debug("dlr.dlr", 0, "DLR[%s]: Looking for DLR smsc=%s, ts=%s, dst=%s, type=%d",
+                                 dlr_type(), octstr_get_cstr(smsc), octstr_get_cstr(ts), octstr_get_cstr(dst), typ);
+
+    dlr = handles->dlr_get(smsc, ts, dst_min);
+    if (dlr == NULL)  {
+        warning(0, "DLR[%s]: DLR from SMSC<%s> for DST<%s> not found.",
+                dlr_type(), octstr_get_cstr(smsc), octstr_get_cstr(dst));         
+        return NULL;
+    }
 
 #define O_SET(x, val) if (octstr_len(val) > 0) { x = val; val = NULL; }
 
+    if ((typ & dlr->mask) > 0) {
         /* its an entry we are interested in */
         msg = msg_create(sms);
         msg->sms.sms_type = report_mo;
         msg->sms.dlr_mask = typ;
-        msg->sms.smsc_id =  octstr_duplicate(smsc);
+        O_SET(msg->sms.service, dlr->service);
+        O_SET(msg->sms.smsc_id, dlr->smsc);
+        O_SET(msg->sms.receiver, dlr->destination);
+        O_SET(msg->sms.sender, dlr->source);
+        /* if dlr_url was present, recode it here again */
+        O_SET(msg->sms.dlr_url, dlr->url);
+        /* add the foreign_id */
         msg->sms.foreign_id = octstr_duplicate(ts);
+        /* 
+         * insert original message to the data segment 
+         * later in the smsc module 
+         */
+        msg->sms.msgdata = NULL;
+        /* 
+         * If a boxc_id is available, then instruct bearerbox to 
+         * route this msg back to originating smsbox
+         */
+        O_SET(msg->sms.boxc_id, dlr->boxc_id);
 
+        time(&msg->sms.time);
         debug("dlr.dlr", 0, "DLR[%s]: created DLR message for URL <%s>",
                       dlr_type(), (msg->sms.dlr_url?octstr_get_cstr(msg->sms.dlr_url):""));
+    } else {
+        debug("dlr.dlr", 0, "DLR[%s]: Ignoring DLR message because of mask type=%d dlr->mask=%d", dlr_type(), typ, dlr->mask);
+        /* ok that was a status report but we where not interested in having it */
+        msg = NULL;
+    }
 
 #undef O_SET
  
@@ -477,13 +456,11 @@ Msg *dlr_find(const Octstr *smsc, const Octstr *ts, const Octstr *dst, int typ, 
         }
     }
 
-    
-    dlr_addresponse(smsc,ts,msg,respstr);
     /* destroy struct dlr_entry */
     dlr_entry_destroy(dlr);
     octstr_destroy(dst_min);
 
-    return NULL;
+    return msg;
 }
     
 void dlr_flush(void)

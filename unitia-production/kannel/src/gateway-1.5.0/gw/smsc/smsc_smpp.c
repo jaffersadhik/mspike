@@ -1392,12 +1392,34 @@ static Msg *handle_dlr(SMPP *smpp, Octstr *destination_addr, Octstr *short_messa
         dlrmsg = dlr_find(smpp->conn->id,
             tmp, /* smsc message id */
             destination_addr, /* destination */
-            dlrstat, 0,respstr);
+            dlrstat, 0);
 
         octstr_destroy(msgid);
     } else
         tmp = octstr_create("");
 
+    if (dlrmsg != NULL) {
+        /*
+         * we found the delivery report in our storage, so recode the
+         * message structure.
+         * The DLR trigger URL is indicated by msg->sms.dlr_url.
+         * Add the DLR error code to meta-data.
+         */
+        dlrmsg->sms.msgdata = octstr_duplicate(respstr);
+        dlrmsg->sms.sms_type = report_mo;
+        dlrmsg->sms.account = octstr_duplicate(smpp->username);
+        if (err != NULL) {
+            if (dlrmsg->sms.meta_data == NULL) {
+                dlrmsg->sms.meta_data = octstr_create("");
+            }
+            meta_data_set_value(dlrmsg->sms.meta_data, "smpp", octstr_imm("dlr_err"), err, 1);
+        }
+    } else {
+        error(0,"SMPP[%s]: got DLR but could not find message or was not interested "
+                "in it id<%s> dst<%s>, type<%d>",
+                octstr_get_cstr(smpp->conn->id), octstr_get_cstr(tmp),
+                octstr_get_cstr(destination_addr), dlrstat);
+    }
     octstr_destroy(tmp);
     octstr_destroy(err);
 

@@ -114,13 +114,19 @@ struct dlr_storage {
      * NOTE: this function is responsible to destroy struct dlr_entry
      */
     void (*dlr_add) (struct dlr_entry *entry);
-
-    void(*dlr_addresponse) (struct dlr_entry *entry,const Octstr *respstr);
     /*
      * Find and return struct dlr_entry. If entry not found return NULL.
      * NOTE: Caller will detroy struct dlr_entry
      */
     struct dlr_entry* (*dlr_get) (const Octstr *smsc, const Octstr *ts, const Octstr *dst);
+    /*
+     * Remove matching dlr entry from storage
+     */
+    void (*dlr_remove) (const Octstr *smsc, const Octstr *ts, const Octstr *dst);
+    /*
+     * Update dlr entry status field if any.
+     */
+    void (*dlr_update) (const Octstr *smsc, const Octstr *ts, const Octstr *dst, int status);
     /*
      * Return count dlr entries in storage.
      */

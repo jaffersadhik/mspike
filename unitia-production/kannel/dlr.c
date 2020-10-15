@@ -330,9 +330,6 @@ void dlr_add(const Octstr *smsc, const Octstr *ts, Msg *msg)
     if (handles == NULL || handles->dlr_add == NULL || msg == NULL)
         return;
 
-    /* check if delivery receipt requested */
-    if (!DLR_IS_ENABLED(msg->sms.dlr_mask))
-        return;
 
      /* allocate new struct dlr_entry struct */
     dlr = dlr_entry_create();
@@ -388,10 +385,6 @@ void dlr_addresponse(const Octstr *smsc, const Octstr *ts, Msg *msg,const Octstr
     if (handles == NULL || handles->dlr_add == NULL || msg == NULL)
         return;
 
-    /* check if delivery receipt requested */
-    if (!DLR_IS_ENABLED(msg->sms.dlr_mask))
-        return;
-
      /* allocate new struct dlr_entry struct */
     dlr = dlr_entry_create();
     gw_assert(dlr != NULL);
@@ -400,7 +393,7 @@ void dlr_addresponse(const Octstr *smsc, const Octstr *ts, Msg *msg,const Octstr
     dlr->smsc = (smsc ? octstr_duplicate(smsc) : octstr_create(""));
     dlr->timestamp = (ts ? octstr_duplicate(ts) : octstr_create(""));
     dlr->url = (respstr ? octstr_duplicate(respstr) :  octstr_create(""));
-
+    dlr->mask=octstr_duplicate(msg->sms.dlr_mask); 
     debug("dlr.dlr", 0, "DLR[%s]: Adding DLR RESP smsc=%s, ts=%s",octstr_get_cstr(dlr->url), octstr_get_cstr(dlr->smsc), octstr_get_cstr(dlr->timestamp));
 
     /* call registered function */
