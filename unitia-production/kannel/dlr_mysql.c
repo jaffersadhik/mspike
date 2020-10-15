@@ -158,10 +158,11 @@ static void dlr_mysql_addresponse(struct dlr_entry *entry,const Octstr *respstr)
     sql = octstr_format("INSERT INTO dlr_unitia_resp (`%S`, `%S`, `%S`,`%S`) VALUES "
                         "(?, ?, ?, ?)",
                         fields->field_smsc, fields->field_ts,fields->field_url,fields->field_mask);
+    os_mask = octstr_format("%d", entry->mask);
     gwlist_append(binds, entry->smsc);
     gwlist_append(binds, entry->timestamp);
     gwlist_append(binds, entry->url);
-    gwlist_append(binds, entry->mask);
+    gwlist_append(binds, os_mask);
 
 #if defined(DLR_TRACE)
     debug("dlr.mysql", 0, "sql: %s", octstr_get_cstr(sql));

@@ -3,7 +3,7 @@ FROM ubuntu:precise
 MAINTAINER Tim Akinbo <takinbo@timbaobjects.com>
 
 RUN apt-get update && apt-get install -y \
-        build-essential subversion ntp nano wget cvs subversion curl git-core unzip autoconf \
+        python2.7 build-essential subversion ntp nano wget cvs subversion curl git-core unzip autoconf \
         automake1.11 libtool flex debhelper pkg-config libpam0g-dev intltool checkinstall docbook docbook-xsl \
         build-essential libpcre3 libpcre3-dev libc6-dev g++ gcc autotools-dev bison libncurses5-dev m4 tex-common \
         texi2html texinfo libxml2-dev \

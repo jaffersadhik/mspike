@@ -381,9 +381,6 @@ void dlr_addresponse(const Octstr *smsc, const Octstr *ts, Msg *msg,const Octstr
         return;
     }
 
-    /* sanity check */
-    if (handles == NULL || handles->dlr_add == NULL || msg == NULL)
-        return;
 
      /* allocate new struct dlr_entry struct */
     dlr = dlr_entry_create();
@@ -393,7 +390,7 @@ void dlr_addresponse(const Octstr *smsc, const Octstr *ts, Msg *msg,const Octstr
     dlr->smsc = (smsc ? octstr_duplicate(smsc) : octstr_create(""));
     dlr->timestamp = (ts ? octstr_duplicate(ts) : octstr_create(""));
     dlr->url = (respstr ? octstr_duplicate(respstr) :  octstr_create(""));
-    dlr->mask=octstr_duplicate(msg->sms.dlr_mask); 
+    dlr->mask=  msg->sms.dlr_mask;
     debug("dlr.dlr", 0, "DLR[%s]: Adding DLR RESP smsc=%s, ts=%s",octstr_get_cstr(dlr->url), octstr_get_cstr(dlr->smsc), octstr_get_cstr(dlr->timestamp));
 
     /* call registered function */
@@ -439,19 +436,8 @@ Msg *dlr_find(const Octstr *smsc, const Octstr *ts, const Octstr *dst, int typ, 
         msg->sms.smsc_id =  octstr_duplicate(smsc);
         msg->sms.foreign_id = octstr_duplicate(ts);
 
-        debug("dlr.dlr", 0, "DLR[%s]: created DLR message for URL <%s>",
-                      dlr_type(), (msg->sms.dlr_url?octstr_get_cstr(msg->sms.dlr_url):""));
-
 #undef O_SET
  
-    /* check for end status and if so remove from storage */
-    if ((typ & DLR_BUFFERED) && ((dlr->mask & DLR_SUCCESS) || (dlr->mask & DLR_FAIL))) {
-        debug("dlr.dlr", 0, "DLR[%s]: DLR not destroyed, still waiting for other delivery report", dlr_type());
-        /* update dlr entry status if function defined */
-    } else {
-    }
-
-    
     dlr_addresponse(smsc,ts,msg,respstr);
     /* destroy struct dlr_entry */
     dlr_entry_destroy(dlr);
