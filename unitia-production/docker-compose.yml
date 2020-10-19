@@ -38,53 +38,6 @@ services:
     environment:
       - module=smpp
       - TZ=Asia/Kolkata
-  dnreceiver1:
-    image: "winnovature/unitia:production"
-    ports:
-      - "6001:8080"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-    depends_on:
-      - "submission"
-    environment:
-      - module=dnreceiver
-      - TZ=Asia/Kolkata
-  dnreceiver2:
-    image: "winnovature/unitia:production"
-    ports:
-      - "6002:8080"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-    depends_on:
-      - "submission"
-    environment:
-      - module=dnreceiver
-      - TZ=Asia/Kolkata
-  dngen1:
-    image: "winnovature/unitia:production"
-    ports:
-      - "7001:8080"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-    depends_on:
-      - "dngencore"
-    environment:
-      - module=dngen
-      - TZ=Asia/Kolkata
-  dngencore:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-    depends_on:
-      - "dn"
-      - "kannel1"
-    environment:
-      - module=dngencore
-      - TZ=Asia/Kolkata
   submission:
     image: "winnovature/unitia:production"
     volumes:
@@ -104,6 +57,16 @@ services:
       - "scheduledb"
     environment:
       - module=delivery
+      - TZ=Asia/Kolkata
+  dnsql:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "kannel1"
+    environment:
+      - module=dnsql
       - TZ=Asia/Kolkata
   scheduledb:
     image: "winnovature/unitia:production"
@@ -162,7 +125,6 @@ services:
       - /etc/hosts:/etc/hosts
       - /home/unitia/:/unitia
     depends_on:
-      - "dngen1"
       - "redisqueue1"
       - "kannel1"
     environment:
@@ -181,7 +143,6 @@ services:
       - "13013:13013" # smsbox
       - "13000:13000" # kannel admin
     depends_on:
-      - dn 
       - kannelconfig
     volumes:
       - "/home/unitia/production/spool/kannel1:/var/spool/kannel"
@@ -229,13 +190,15 @@ services:
     environment:
       - module=kannelconfig
       - TZ=Asia/Kolkata
-  dn:
-    image: "winnovature/dn-haproxy:production"
-    ports:
-      - "8777:8080"
-    depends_on:
-      - "dnreceiver1"
-      - "dnreceiver2"
+  logs:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    environment:
+      - module=logs
+      - TZ=Asia/Kolkata
   http:
     image: "winnovature/http-haproxy:production"
     ports:
