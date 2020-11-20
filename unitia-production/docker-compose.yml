@@ -68,6 +68,16 @@ services:
     environment:
       - module=dnsql
       - TZ=Asia/Kolkata
+  demo:
+    image: "winnovature/unitia:production"
+    ports:
+       - "4001:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    environment:
+      - module=demo
+      - TZ=Asia/Kolkata
   scheduledb:
     image: "winnovature/unitia:production"
     volumes:
