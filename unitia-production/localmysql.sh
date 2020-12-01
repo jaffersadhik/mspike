@@ -1,1 +1,1 @@
- mysql --host=127.0.0.1 --port=7005 -u root -p
+ mysql --host=127.0.0.1 --port=3306 -u root -p

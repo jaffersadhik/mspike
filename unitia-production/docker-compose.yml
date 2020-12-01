@@ -8,6 +8,7 @@ services:
     volumes:
       - /etc/hosts:/etc/hosts
       - /home/unitia/:/unitia
+      - /logs:/logs
     depends_on:
       - "router1"
     environment:
@@ -148,7 +149,7 @@ services:
     volumes:
       - /home/unitia/production/redisqueue1/data/:/data
   kannel1:
-    image: "kannel"
+    image: "winnovature/kannel:sqldn"
     ports:
       - "13013:13013" # smsbox
       - "13000:13000" # kannel admin
@@ -216,3 +217,49 @@ services:
     depends_on:
       - "http1"
       - "http2"
+  optin:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    depends_on:
+      - "redisqueue1"
+    environment:
+      - module=optin
+      - TZ=Asia/Kolkata
+  optout:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    depends_on:
+      - "redisqueue1"
+    environment:
+      - module=optout
+      - TZ=Asia/Kolkata
+  duplicate:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    depends_on:
+      - "redisqueue1"
+    environment:
+      - module=duplicate
+      - TZ=Asia/Kolkata
+  dnreceiver1:
+    image: "winnovature/unitia:production"
+    ports:
+      - "6001:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    depends_on:
+      - "submission"
+    environment:
+      - module=dnreceiver
+      - TZ=Asia/Kolkata
+
