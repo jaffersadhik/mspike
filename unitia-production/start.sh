@@ -1,1 +1,1 @@
-docker-compose up --scale router1=3 --scale logs=3 -d
+docker-compose up --scale processor=1 --scale router1=3 -d

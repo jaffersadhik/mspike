@@ -39,6 +39,20 @@ services:
     environment:
       - module=smpp
       - TZ=Asia/Kolkata
+  smpp2:
+    image: "winnovature/unitia:production"
+    ports:
+      - "3775:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    depends_on:
+      - "router1"
+    environment:
+      - module=smpp
+      - TZ=Asia/Kolkata
+
   submission:
     image: "winnovature/unitia:production"
     volumes:
@@ -146,6 +160,7 @@ services:
       - /logs:/logs
     depends_on:
       - "redisqueue1"
+      - "redisinterfacequeue1"
       - "kannel1"
     environment:
       - module=router
@@ -157,6 +172,12 @@ services:
       - "2001:6379" 
     volumes:
       - /home/unitia/production/redisqueue1/data/:/data
+  redisinterfacequeue1:
+    image: "winnovature/redis:production"
+    ports:
+      - "3001:6379"
+    volumes:
+      - /home/unitia/production/redisinterfacequeue1/data/:/data
   kannel1:
     image: "winnovature/kannel:sqldn"
     ports:
@@ -209,15 +230,6 @@ services:
       - "kannel1db"
     environment:
       - module=kannelconfig
-      - TZ=Asia/Kolkata
-  logs:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    environment:
-      - module=logs
       - TZ=Asia/Kolkata
   http:
     image: "winnovature/http-haproxy:production"
@@ -272,127 +284,6 @@ services:
     environment:
       - module=dnreceiver
       - TZ=Asia/Kolkata
-  countrycode:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=countrycode
-      - TZ=Asia/Kolkata
-  numberingplan:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=numberingplan
-      - TZ=Asia/Kolkata
-  blacklistmobile:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=blacklistmobile
-      - TZ=Asia/Kolkata
-  blacklistsms:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=blacklistsms
-      - TZ=Asia/Kolkata
-  spamfilter:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=spamfilter
-      - TZ=Asia/Kolkata
-  senderidcheck:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=senderidcheck
-      - TZ=Asia/Kolkata
-  blacklistsenderid:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=blacklistsenderid
-      - TZ=Asia/Kolkata
-  templatecheck:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=templatecheck
-      - TZ=Asia/Kolkata
-  dnd:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=dnd
-      - TZ=Asia/Kolkata
-  dlt:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=dlt
-      - TZ=Asia/Kolkata
-  routegroup:
-    image: "winnovature/unitia:production"
-    volumes:
-      - /etc/hosts:/etc/hosts
-      - /home/unitia/:/unitia
-      - /logs:/logs
-    depends_on:
-      - "redisqueue1"
-    environment:
-      - module=routegroup
-      - TZ=Asia/Kolkata
   queuecheck:
     image: "winnovature/unitia:production"
     volumes:
@@ -404,4 +295,14 @@ services:
     environment:
       - module=queuecheck
       - TZ=Asia/Kolkata
-
+  processor:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    depends_on:
+      - "redisqueue1"
+    environment:
+      - module=processor
+      - TZ=Asia/Kolkata
