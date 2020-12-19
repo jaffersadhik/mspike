@@ -1,0 +1,50 @@
+version: '3'
+services:
+  simulator2:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    environment:
+      - module=simulator
+      - TZ=Asia/Kolkata
+  kannel2:
+    image: "winnovature/kannel:sqldn"
+    ports:
+      - "13212:13013" # smsbox
+      - "13200:13000" # kannel admin
+    depends_on:
+      - kannelconfig
+      - kannel2db
+    volumes:
+      - "/home/unitia/production/spool/kannel2:/var/spool/kannel"
+      - "/logs/kannel2:/var/log/kannel"
+      - "/etc/hosts:/etc/hosts"
+      - "/home/unitia/production/kannel2:/etc/kannel"
+      - "./opensmppbox.conf:/etc/kannel/opensmppbox.conf"
+    environment:
+      - "LANG=en_US.UTF-8"
+      - "LC_ALL=en_US.UTF-8"
+  kannel2db:
+    image: "winnovature/mariadb:production"
+    ports:
+      -  "3326:3306"
+    volumes:
+      - "/home/unitia/production/kannel2db:/var/lib/mysql"
+      - "/home/unitia/production/kannel2db/my.cnf:/etc/mysql/my.cnf"
+    environment:
+      - MYSQL_ROOT_PASSWORD=kannel
+      - TZ=Asia/Kolkata
+  kannelconfig:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    depends_on:
+      - "kannel2db"
+    environment:
+      - module=kannelconfig
+      - TZ=Asia/Kolkata
+

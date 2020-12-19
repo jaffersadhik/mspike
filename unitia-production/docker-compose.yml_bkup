@@ -165,6 +165,19 @@ services:
       - module=router
       - redis=redisqueue1 
       - TZ=Asia/Kolkata
+  router2:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    depends_on:
+      - "redisqueue1"
+      - "kannel1"
+    environment:
+      - module=router
+      - redis=redisqueue2
+      - TZ=Asia/Kolkata
   redisqueue1:
     image: "winnovature/redis:production"
     ports:
@@ -177,6 +190,12 @@ services:
       - "3001:6379"
     volumes:
       - /home/unitia/production/redisqueue2/data/:/data
+  redisinterfacequeue2:
+    image: "winnovature/redis:production"
+    ports:
+      - "3002:6379"
+    volumes:
+      - /home/unitia/production/redisinterfacequeue2/data/:/data
   kannel1:
     image: "winnovature/kannel:sqldn"
     ports:
@@ -194,6 +213,24 @@ services:
       - "LANG=en_US.UTF-8"
       - "LC_ALL=en_US.UTF-8"
       - "TZ=Asia/Kolkata"
+  kannel2:
+    image: "winnovature/kannel:sqldn"
+    ports:
+      - "13203:13013" # smsbox
+      - "13200:13000" # kannel admin
+    depends_on:
+      - kannelconfig
+      - kannel2db
+    volumes:
+      - "/home/unitia/production/spool/kannel2:/var/spool/kannel"
+      - "/logs/kannel2:/var/log/kannel"
+      - "/etc/hosts:/etc/hosts"
+      - "/home/unitia/production/kannel2:/etc/kannel"
+      - "./opensmppbox.conf:/etc/kannel/opensmppbox.conf"
+    environment:
+      - "LANG=en_US.UTF-8"
+      - "LC_ALL=en_US.UTF-8"
+      - "TZ=Asia/Kolkata"
   unitiadb:
     image: "winnovature/mariadb:production"
     ports:
@@ -204,6 +241,10 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=kannel 
       - TZ=Asia/Kolkata
+    networks:
+      default:
+        aliases:
+          - "unitia.mysql.ip" 
   kannel1db:
     image: "winnovature/mariadb:production"
     ports:
@@ -211,6 +252,16 @@ services:
     volumes:
       - "/home/unitia/production/kannel1db:/var/lib/mysql"
       - "/home/unitia/production/kannel1db/my.cnf:/etc/mysql/my.cnf"
+    environment:
+      - MYSQL_ROOT_PASSWORD=kannel
+      - TZ=Asia/Kolkata
+  kannel2db:
+    image: "winnovature/mariadb:production"
+    ports:
+      -  "3309:3306"
+    volumes:
+      - "/home/unitia/production/kannel2db:/var/lib/mysql"
+      - "/home/unitia/production/kannel2db/my.cnf:/etc/mysql/my.cnf"
     environment:
       - MYSQL_ROOT_PASSWORD=kannel
       - TZ=Asia/Kolkata
@@ -278,4 +329,26 @@ services:
       - "submission"
     environment:
       - module=dnreceiver
+      - TZ=Asia/Kolkata
+  queuecheck:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    depends_on:
+      - "redisqueue1"
+    environment:
+      - module=queuecheck
+      - TZ=Asia/Kolkata
+  processor:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs
+    depends_on:
+      - "redisqueue1"
+    environment:
+      - module=processor
       - TZ=Asia/Kolkata

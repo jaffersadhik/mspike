@@ -1,0 +1,13 @@
+version: '3'
+services:
+  http:
+    image: "winnovature/unitia:production" 
+    ports:
+      - "8001:8080"
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+      - /logs:/logs 
+    environment:
+      - module=http
+      - TZ=Asia/Kolkata  

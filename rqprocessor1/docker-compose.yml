@@ -1,0 +1,13 @@
+version: '3'
+services:
+  router:
+    image: "winnovature/unitia:production"
+    volumes:
+      - /logs:/logs
+      - /etc/hosts:/etc/hosts
+      - /home/unitia/:/unitia
+    environment:
+      - module=router
+      - redis=redisqueue1 
+      - TZ=Asia/Kolkata
+

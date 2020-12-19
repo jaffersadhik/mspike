@@ -1,0 +1,43 @@
+This is ApacheBench, Version 2.3 <$Revision: 1430300 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+
+
+Server Software:        Jetty(9.4.30.v20200611)
+Server Hostname:        localhost
+Server Port:            8001
+
+Document Path:          /send?username=testuser3&password=testuser&to=919487660738&content=test%20message&from=WECARE
+Document Length:        121 bytes
+
+Concurrency Level:      10
+Time taken for tests:   677.478 seconds
+Complete requests:      200000
+Failed requests:        0
+Write errors:           0
+Total transferred:      54000000 bytes
+HTML transferred:       24200000 bytes
+Requests per second:    295.21 [#/sec] (mean)
+Time per request:       33.874 [ms] (mean)
+Time per request:       3.387 [ms] (mean, across all concurrent requests)
+Transfer rate:          77.84 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.1      0       3
+Processing:     1   34 105.0      8    3889
+Waiting:        1   34 105.0      8    3888
+Total:          1   34 105.0      8    3889
+
+Percentage of the requests served within a certain time (ms)
+  50%      8
+  66%     12
+  75%     16
+  80%     21
+  90%     54
+  95%    123
+  98%    400
+  99%    564
+ 100%   3889 (longest request)
